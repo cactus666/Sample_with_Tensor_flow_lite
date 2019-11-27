@@ -31,11 +31,17 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.io.*
 import android.R.attr.bitmap
 import android.R.attr.name
+import android.graphics.Color
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import com.pickingwords.mushroomchecker.action_with_bitmap.croppedBitmap
 import com.pickingwords.mushroomchecker.action_with_bitmap.resizeBitmap
+import org.tensorflow.lite.Interpreter
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.MappedByteBuffer
+import java.nio.channels.FileChannel
+import kotlin.concurrent.thread
 
 
 class MainActivity3: Activity(), SurfaceHolder.Callback, View.OnClickListener {
@@ -191,7 +197,29 @@ class MainActivity3: Activity(), SurfaceHolder.Callback, View.OnClickListener {
         val resizeBitmap = resizeBitmap(bmp)
 //        Log.d("getBitmap", "sizeresizeBitmap = w - ${resizeBitmap.width}, ${resizeBitmap.height}")
 
-            ...
+
+
+        thread{
+            var dataFromImage: FloatArray = FloatArray(480 * 480 * 3) {0.0f}
+
+//            val ims = assets.open("images3.jpg")
+//             load image as Drawable
+//            val d = Drawable.createFromStream(ims, null)
+            val testBitmap = resizeBitmap//d.toBitmap()
+
+            Log.d("result", "size -  ${testBitmap.width}, ${testBitmap.height}")
+            var indexColor = 0
+            for (x in 0 until testBitmap.width) {
+                for (y in 0 until testBitmap.height) {
+                    dataFromImage[indexColor] = (Color.red(testBitmap.getPixel(x,y)).toFloat()/ 255.0).toFloat()
+                    dataFromImage[indexColor + 1] = (Color.green(testBitmap.getPixel(x,y)).toFloat()/ 255.0).toFloat()
+                    dataFromImage[indexColor + 2] = (Color.blue(testBitmap.getPixel(x,y)).toFloat() / 255.0).toFloat()
+                    indexColor += 3
+                }
+            }
+
+            runInference(dataFromImage)
+        }
 
         /*
 //        val dir_image2 = File("${Environment.getExternalStorageDirectory()}${File.separator}My Custom Folder")
@@ -269,5 +297,50 @@ class MainActivity3: Activity(), SurfaceHolder.Callback, View.OnClickListener {
     }
 
 
+    fun runInference(dataFromImage: FloatArray) {
+        val tfliteModel = loadModelFile(this)
+        val tflite = Interpreter(tfliteModel)//, Interpreter.Options())
+
+        var inputData: ByteBuffer = ByteBuffer.allocateDirect(
+            1 // 1 dimension
+                    * 480 //6 attributes/columns
+                    * 480 //1 row
+                    * 3 //4 bytes per number as the number is float
+        )
+        inputData.order(ByteOrder.nativeOrder())
+
+        val inputBuffer = ByteBuffer.allocateDirect(3 * 4 * 480 * 480)
+            .apply { order(ByteOrder.nativeOrder()) }
+
+        fun FloatArray.unwindToByteBuffer() {
+            inputBuffer.rewind()
+            for (f in this) {
+                inputBuffer.putFloat(f)
+            }
+        }
+
+        dataFromImage.unwindToByteBuffer()
+
+
+//        floatArrayOf(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f).forEach {
+//            inputData.putFloat(it)
+//        }
+
+        val labelProbArray: Array<FloatArray> = Array(1) { FloatArray(1) }
+
+        tflite.run(inputBuffer, labelProbArray)
+
+        var prediction = (labelProbArray[0][0])
+        Log.d("result", "prediction = ${prediction}")
+    }
+
+    private fun loadModelFile(activity: Activity): MappedByteBuffer {
+        val fileDescriptor = activity.assets.openFd("model.tflite")
+        val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
+        val fileChannel = inputStream.channel
+        val startOffset = fileDescriptor.startOffset
+        val declaredLength = fileDescriptor.declaredLength
+        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
+    }
 
 }
