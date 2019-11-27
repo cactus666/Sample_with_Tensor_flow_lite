@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">MushroomChecker</string>
+
+    <string name="win">Съедобен</string>
+    <string name="fail">Несъедобен</string>
+
 </resources>

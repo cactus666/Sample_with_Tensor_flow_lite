@@ -16,6 +16,5 @@ fun croppedBitmap(originalBitmap: Bitmap, topPercent: Float, bottomPercent: Floa
 }
 
 fun resizeBitmap(originalBitmap: Bitmap, newWidth: Int = 480, newHeight: Int = 480): Bitmap {
-//    Bitmap originalBitmap = BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.length)
     return Bitmap.createScaledBitmap(originalBitmap, newWidth, newHeight, false)
 }

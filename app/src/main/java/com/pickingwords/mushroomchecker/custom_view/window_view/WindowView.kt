@@ -33,6 +33,12 @@ class WindowView(context: Context, attributeSet: AttributeSet): View(context, at
         val paint = Paint(ANTI_ALIAS_FLAG)
         paint.color = resources.getColor(R.color.color_camera_shadow)
         paint.style = Paint.Style.FILL
+
+        val paintStroke = Paint(ANTI_ALIAS_FLAG)
+        paintStroke.color = resources.getColor(android.R.color.holo_red_light)
+        paintStroke.style = Paint.Style.STROKE
+        paintStroke.strokeWidth = 2f
+
         canvas.drawPaint(paint)
 
         val circleRect = RectF(
@@ -45,6 +51,8 @@ class WindowView(context: Context, attributeSet: AttributeSet): View(context, at
         //Draw transparent shape
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
         canvas.drawRoundRect(circleRect, radius, radius, paint)
+
+        canvas.drawRoundRect(circleRect, radius, radius, paintStroke)
 
     }
 
