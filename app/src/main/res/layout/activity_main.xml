@@ -40,26 +40,6 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-    <TextView
-        android:id="@+id/result"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/check"
-        android:background="@drawable/bg_result"
-        android:paddingStart="80dp"
-        android:paddingTop="16dp"
-        android:paddingEnd="80dp"
-        android:paddingBottom="16dp"
-        android:text="Съедобен"
-        android:textColor="#000"
-        android:textSize="16sp"
-        android:layout_marginBottom="24dp"
-        app:layout_constraintBottom_toTopOf="@+id/check"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:visibility="gone"/>
-
-
     <ImageView
         android:id="@+id/check"
         android:layout_width="wrap_content"
@@ -70,23 +50,53 @@
         android:background="@drawable/bg_ic_check"
         android:padding="6dp"
         android:src="@drawable/ic_check"
-
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateDrawable="@drawable/spinner_ring"
+        android:indeterminateOnly="true"
+        android:padding="6dp"
+        android:layout_marginBottom="80dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:visibility="gone"
+        />
+
+    <TextView
+        android:id="@+id/result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_result"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:textColor="#000"
+        android:textSize="16sp"
+        android:layout_marginLeft="34dp"
+        android:layout_marginRight="34dp"
+        android:gravity="center"
+        android:layout_marginBottom="80dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:visibility="gone"
+        />
+
     <ImageView
         android:id="@+id/again"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="80dp"
+        android:layout_marginTop="24dp"
         android:background="@drawable/bg_ic_check"
         android:padding="6dp"
         android:src="@drawable/ic_again"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/result"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:visibility="gone"/>

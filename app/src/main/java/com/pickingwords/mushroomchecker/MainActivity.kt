@@ -10,6 +10,7 @@ import android.hardware.Camera
 import android.hardware.Camera.CameraInfo
 import android.hardware.Camera.PictureCallback
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
@@ -35,6 +36,7 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
                 camera!!.takePicture(null, null, mPicture)
             }
             R.id.again -> {
+                windowView.onRestart()
                 result.visibility = View.GONE
                 again.visibility = View.GONE
                 check.visibility = View.VISIBLE
@@ -158,10 +160,12 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
     private val mPicture = PictureCallback { data, camera ->
         camera.startPreview()
 
-        val bmp = BitmapFactory.decodeByteArray(data, 0, data.size)
+        thread{
 
-        Log.i("getBitmap", "w = ${windowView.width}, h = ${windowView.height}, sw = ${surfaceView.width}, sh = ${surfaceView.height} percent: ${windowView.getTopLimitPercent()}, ${windowView.getBottomLimitPercent()}, ${windowView.getLeftLimitPercent()}, ${windowView.getRightLimitPercent()}")
-        Log.i("getBitmap", "newPercent: ${windowView.getTopLimitPercent() * windowView.width} == ${( windowView.getTopLimitPercent() * windowView.width + (surfaceView.width - windowView.width) / 2 ) / surfaceView.width}")
+            val bmp = BitmapFactory.decodeByteArray(data, 0, data.size)
+
+            Log.i("getBitmap", "w = ${windowView.width}, h = ${windowView.height}, sw = ${surfaceView.width}, sh = ${surfaceView.height} percent: ${windowView.getTopLimitPercent()}, ${windowView.getBottomLimitPercent()}, ${windowView.getLeftLimitPercent()}, ${windowView.getRightLimitPercent()}")
+            Log.i("getBitmap", "newPercent: ${windowView.getTopLimitPercent() * windowView.width} == ${( windowView.getTopLimitPercent() * windowView.width + (surfaceView.width - windowView.width) / 2 ) / surfaceView.width}")
 
 //        val newBitmap = croppedBitmap(
 //            bmp,
@@ -174,13 +178,11 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
 //        Log.i("getBitmap", "size = w - ${bmp.width}, ${bmp.height}")
 //        Log.i("getBitmap", "size2 = w - ${newBitmap.width}, ${newBitmap.height}")
 
-        val resizeBitmap = resizeBitmap(bmp)
+            val resizeBitmap = resizeBitmap(bmp)
 
 
-
-//        thread{
             checkBitmapInModel(resizeBitmap)
-//        }
+        }
     }
 
     private fun checkBitmapInModel(testBitmap: Bitmap) {
@@ -223,7 +225,10 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
         tflite.run(inputBuffer, labelProbArray)
 
         val prediction = (labelProbArray[0][0])
-        showPrediction(prediction)
+
+        runOnUiThread {
+            showPrediction(prediction)
+        }
     }
 
     private fun loadModelFile(activity: Activity): MappedByteBuffer {
@@ -241,31 +246,46 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
         if (prediction > 0.6) {
             showWinMessage()
         }
-        else {
-            showFailMessage()
+        else{
+            if (prediction < 0.4){
+                showHarmfulMessage()
+            }
+            else {
+                showFailMessage()
+            }
         }
     }
 
 
     private fun startProgressBar() {
         check.visibility = View.GONE
-        //
+        progress_bar.visibility = View.VISIBLE
     }
 
     private fun stopProgressBar() {
+        progress_bar.visibility = View.GONE
         again.visibility = View.VISIBLE
     }
 
     private fun showWinMessage() {
+        result.setTextColor(ContextCompat.getColor(applicationContext, R.color.color_stroke_win))
         result.setText(R.string.win)
         result.visibility = View.VISIBLE
-//        windowView.win()
+        windowView.onWin()
+    }
+
+    private fun showHarmfulMessage() {
+        result.setTextColor(ContextCompat.getColor(applicationContext, R.color.color_stroke_harmful))
+        result.setText(R.string.harmful)
+        result.visibility = View.VISIBLE
+        windowView.onHarmful()
     }
 
     private fun showFailMessage() {
+        result.setTextColor(ContextCompat.getColor(applicationContext, R.color.color_stroke_fail))
         result.setText(R.string.fail)
         result.visibility = View.VISIBLE
-//        windowView.fail()
+        windowView.onFail()
     }
 
 }

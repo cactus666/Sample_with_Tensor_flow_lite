@@ -2,6 +2,7 @@
     <string name="app_name">MushroomChecker</string>
 
     <string name="win">Съедобен</string>
-    <string name="fail">Несъедобен</string>
+    <string name="harmful">Несъедобен</string>
+    <string name="fail">Не удалось определить гриб:(</string>
 
 </resources>

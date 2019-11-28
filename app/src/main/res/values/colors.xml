@@ -6,4 +6,12 @@
 
     <color name="color_main">#0066FF</color>
     <color name="color_camera_shadow">#80000000</color>
+
+    <color name="color_stroke_fail">#000000</color>
+    <color name="color_stroke_win">#1EBB40</color>
+    <color name="color_stroke_harmful">#D12323</color>
+    <color name="color_stroke_normal">#00000000</color>
+
+
+
 </resources>

@@ -1,10 +1,12 @@
 package com.pickingwords.mushroomchecker.custom_view.window_view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.graphics.*
 import android.graphics.Paint.ANTI_ALIAS_FLAG
+import androidx.core.content.ContextCompat
 import com.pickingwords.mushroomchecker.R
 
 
@@ -14,6 +16,14 @@ class WindowView(context: Context, attributeSet: AttributeSet): View(context, at
     private var size = 0
     private var centerOnVertical = 0
     private val radius = 50f
+    private var stateWindowView: State = State.NORMAL
+    private val paintStroke: Paint = Paint(ANTI_ALIAS_FLAG)
+
+    init {
+        paintStroke.color = ContextCompat.getColor(context, R.color.color_stroke_normal)
+        paintStroke.style = Paint.Style.STROKE
+        paintStroke.strokeWidth = 3f
+    }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
@@ -27,19 +37,17 @@ class WindowView(context: Context, attributeSet: AttributeSet): View(context, at
     }
 
 
+
+
+    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val paint = Paint(ANTI_ALIAS_FLAG)
-        paint.color = resources.getColor(R.color.color_camera_shadow)
-        paint.style = Paint.Style.FILL
+        val paintLid = Paint(ANTI_ALIAS_FLAG)
+        paintLid.color = ContextCompat.getColor(context, R.color.color_camera_shadow)
+        paintLid.style = Paint.Style.FILL
 
-        val paintStroke = Paint(ANTI_ALIAS_FLAG)
-        paintStroke.color = resources.getColor(android.R.color.holo_red_light)
-        paintStroke.style = Paint.Style.STROKE
-        paintStroke.strokeWidth = 2f
-
-        canvas.drawPaint(paint)
+        canvas.drawPaint(paintLid)
 
         val circleRect = RectF(
             ((width - size) / 2).toFloat(),
@@ -49,8 +57,8 @@ class WindowView(context: Context, attributeSet: AttributeSet): View(context, at
         )
 
         //Draw transparent shape
-        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
-        canvas.drawRoundRect(circleRect, radius, radius, paint)
+        paintLid.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+        canvas.drawRoundRect(circleRect, radius, radius, paintLid)
 
         canvas.drawRoundRect(circleRect, radius, radius, paintStroke)
 
@@ -70,6 +78,35 @@ class WindowView(context: Context, attributeSet: AttributeSet): View(context, at
 
     fun getRightLimitPercent(): Float {
         return ((width + size) / 2).toFloat() / width
+    }
+
+    fun onHarmful() {
+        stateWindowView = State.HARMFUL
+        setColorForStroke(stateWindowView, paintStroke)
+    }
+
+    fun onFail() {
+        stateWindowView = State.NORMAL
+        setColorForStroke(stateWindowView, paintStroke)
+    }
+
+    fun onWin() {
+        stateWindowView = State.WIN
+        setColorForStroke(stateWindowView, paintStroke)
+    }
+
+    fun onRestart() {
+        stateWindowView = State.NORMAL
+        setColorForStroke(stateWindowView, paintStroke)
+    }
+
+    private fun setColorForStroke(state: State, paintStroke: Paint) {
+        when (state) {
+            State.NORMAL -> paintStroke.color = ContextCompat.getColor(context, R.color.color_stroke_normal)
+            State.WIN -> paintStroke.color = ContextCompat.getColor(context, R.color.color_stroke_win)
+            State.HARMFUL -> paintStroke.color = ContextCompat.getColor(context, R.color.color_stroke_harmful)
+        }
+        invalidate()
     }
 
 }
