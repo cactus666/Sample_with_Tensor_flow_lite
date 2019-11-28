@@ -10,11 +10,11 @@ import android.hardware.Camera
 import android.hardware.Camera.CameraInfo
 import android.hardware.Camera.PictureCallback
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.snackbar.Snackbar
 import com.pickingwords.mushroomchecker.action_with_bitmap.resizeBitmap
 import kotlinx.android.synthetic.main.activity_main.*
 import org.tensorflow.lite.Interpreter
@@ -46,11 +46,11 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
 
     override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
         if (previewRunning) {
-            camera!!.stopPreview()
+            camera?.stopPreview()
         }
         try {
-            camera!!.setPreviewDisplay(holder)
-            camera!!.startPreview()
+            camera?.setPreviewDisplay(holder)
+            camera?.startPreview()
             previewRunning = true
             setCameraDisplayOrientation()
         } catch (e: IOException) {
@@ -66,16 +66,58 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
 
     override fun surfaceCreated(holder: SurfaceHolder?) {
         try {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), REQUEST_PERMISSION_CAMERA)
-            else {
+//            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+//                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), REQUEST_PERMISSION_CAMERA)
+//            else {
                 camera = Camera.open(CAMERA_ID)
-            }
+//            }
             setPreviewSize()
         } catch (e: Exception) {
             Log.e("surface", "surfaceCreated: stack - ${e.printStackTrace()}")
-            finish()
         }
+    }
+
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            REQUEST_PERMISSION_CAMERA -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    holder = surfaceView.holder
+                    holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS)
+                    holder.addCallback(this)
+
+                    check.setOnClickListener(this)
+                    again.setOnClickListener(this)
+
+                    introduction.post {
+                        check.post {
+                            windowView.initializeSizeLimitation(
+                                introduction.y.toInt() + introduction.height,
+                                check.y.toInt()
+                            )
+                        }
+                    }
+                    camera = Camera.open(CAMERA_ID)
+                    setPreviewSize()
+                    if (previewRunning) {
+                        camera!!.stopPreview()
+                    }
+                    try {
+                        camera!!.setPreviewDisplay(holder)
+                        camera!!.startPreview()
+                        previewRunning = true
+                        setCameraDisplayOrientation()
+                    } catch (e: IOException) {
+                        Log.e("surface", "surfaceChanged: stack - ${e.printStackTrace()}")
+                    }
+                } else {
+                    warning.show()
+                }
+                return
+            }
+        }
+
     }
 
     private lateinit var holder: SurfaceHolder
@@ -84,6 +126,7 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
     private var previewRunning: Boolean = false
     protected var REQUEST_PERMISSION_CAMERA = 50
     private lateinit var tflite: Interpreter
+    private lateinit var warning: Snackbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,6 +137,15 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
         )
         setContentView(R.layout.activity_main)
 
+        warning = Snackbar.make(constraintLayout, "Приложение не может работать без камеры", Snackbar.LENGTH_INDEFINITE)
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), REQUEST_PERMISSION_CAMERA)
+        }
+        else {
+            warning.dismiss()
+        }
+
         holder = surfaceView.holder
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS)
         holder.addCallback(this)
@@ -101,15 +153,23 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
         check.setOnClickListener(this)
         again.setOnClickListener(this)
 
-        introduction.post{
-            check.post{
+        introduction.post {
+            check.post {
                 windowView.initializeSizeLimitation(
                     introduction.y.toInt() + introduction.height,
                     check.y.toInt()
                 )
             }
         }
+
         settingModel()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            warning.dismiss()
+        }
     }
 
     private fun settingModel() {
