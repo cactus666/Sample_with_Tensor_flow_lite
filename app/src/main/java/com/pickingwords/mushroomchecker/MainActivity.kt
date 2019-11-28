@@ -112,6 +112,7 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
                         Log.e("surface", "surfaceChanged: stack - ${e.printStackTrace()}")
                     }
                 } else {
+                    check.isEnabled = false
                     warning.show()
                 }
                 return
@@ -143,6 +144,7 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), REQUEST_PERMISSION_CAMERA)
         }
         else {
+            check.isEnabled = true
             warning.dismiss()
         }
 
@@ -168,6 +170,7 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
     override fun onResume() {
         super.onResume()
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            check.isEnabled = true
             warning.dismiss()
         }
     }
