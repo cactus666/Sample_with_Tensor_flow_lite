@@ -66,12 +66,7 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
 
     override fun surfaceCreated(holder: SurfaceHolder?) {
         try {
-//            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
-//                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), REQUEST_PERMISSION_CAMERA)
-//            else {
-                camera = Camera.open(CAMERA_ID)
-//            }
-            setPreviewSize()
+            camera = Camera.open(CAMERA_ID)
         } catch (e: Exception) {
             Log.e("surface", "surfaceCreated: stack - ${e.printStackTrace()}")
         }
@@ -99,7 +94,6 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
                         }
                     }
                     camera = Camera.open(CAMERA_ID)
-                    setPreviewSize()
                     if (previewRunning) {
                         camera!!.stopPreview()
                     }
@@ -177,17 +171,7 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
 
     private fun settingModel() {
         val tfliteModel = loadModelFile(this)
-        tflite = Interpreter(tfliteModel)//, Interpreter.Options())
-    }
-
-    private fun setPreviewSize() {
-        val size = camera!!.parameters.previewSize
-
-//        val set = ConstraintSet()
-//        set.clone(constraintLayout)
-//        set.setDimensionRatio(surfaceView.id, "${size.height}:${size.width}")
-//        set.applyTo(constraintLayout)
-
+        tflite = Interpreter(tfliteModel)
     }
 
     private fun setCameraDisplayOrientation(cameraId: Int = CAMERA_ID) {
@@ -224,32 +208,15 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
         camera.startPreview()
 
         thread{
-
             val bmp = BitmapFactory.decodeByteArray(data, 0, data.size)
-
-            Log.i("getBitmap", "w = ${windowView.width}, h = ${windowView.height}, sw = ${surfaceView.width}, sh = ${surfaceView.height} percent: ${windowView.getTopLimitPercent()}, ${windowView.getBottomLimitPercent()}, ${windowView.getLeftLimitPercent()}, ${windowView.getRightLimitPercent()}")
-            Log.i("getBitmap", "newPercent: ${windowView.getTopLimitPercent() * windowView.width} == ${( windowView.getTopLimitPercent() * windowView.width + (surfaceView.width - windowView.width) / 2 ) / surfaceView.width}")
-
-//        val newBitmap = croppedBitmap(
-//            bmp,
-//            ( windowView.getTopLimitPercent() * windowView.height + (surfaceView.height - windowView.height) / 2 ) / surfaceView.height,
-//            ( windowView.getBottomLimitPercent() * windowView.height + (surfaceView.height - windowView.height) / 2 ) / surfaceView.height,
-//            ( windowView.getLeftLimitPercent() * windowView.width + (surfaceView.width - windowView.width) / 2 ) / surfaceView.width,
-//            ( windowView.getRightLimitPercent() * windowView.width + (surfaceView.width - windowView.width) / 2 ) / surfaceView.width
-//        )
-
-//        Log.i("getBitmap", "size = w - ${bmp.width}, ${bmp.height}")
-//        Log.i("getBitmap", "size2 = w - ${newBitmap.width}, ${newBitmap.height}")
-
             val resizeBitmap = resizeBitmap(bmp)
-
-
             checkBitmapInModel(resizeBitmap)
         }
+
     }
 
     private fun checkBitmapInModel(testBitmap: Bitmap) {
-        var dataFromImage = FloatArray(480 * 480 * 3) {0.0f}
+        val dataFromImage = FloatArray(480 * 480 * 3) {0.0f}
         var indexColor = 0
         for (x in 0 until testBitmap.width) {
             for (y in 0 until testBitmap.height) {
@@ -318,7 +285,6 @@ class MainActivity: Activity(), SurfaceHolder.Callback, View.OnClickListener {
             }
         }
     }
-
 
     private fun startProgressBar() {
         check.visibility = View.GONE
